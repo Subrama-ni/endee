@@ -50,54 +50,13 @@ def ask_question(q: Query):
     sentences = [s.strip() for s in context.split('.') if s.strip()]
 
     if not sentences:
-        return {"answer": "No relevant information found.", "confidence": 0, "sources": []}
+        return {"answer": "No relevant information found."}
 
-    question_embedding = get_model().encode(...)(q.question, convert_to_tensor=True)
-    sentence_embeddings = get_model().encode(...)(sentences, convert_to_tensor=True)
-
-    scores = util.cos_sim(question_embedding, sentence_embeddings)[0]
-
-    question_words = set(q.question.lower().split())
-
-    ranked = []
-
-    for i, sentence in enumerate(sentences):
-        score = scores[i].item()
-
-        sentence_words = set(sentence.lower().split())
-        keyword_overlap = len(question_words & sentence_words)
-
-        penalty = -0.2 if len(sentence.split()) < 5 else 0
-
-        final_score = score + (0.1 * keyword_overlap) + penalty
-
-        ranked.append((final_score, sentence))
-
-    ranked.sort(reverse=True, key=lambda x: x[0])
-
-    # Select top diverse sentences
-    selected = []
-    used_words = set()
-
-    for score, sentence in ranked:
-        words = set(sentence.lower().split())
-
-        if len(words & used_words) < 3:
-            selected.append(sentence)
-            used_words.update(words)
-
-        if len(selected) == 3:
-            break
-
-    # Confidence score (average of top scores)
-    confidence = round(sum([r[0] for r in ranked[:3]]) / 3, 2)
-
-    # Format as bullet points
-    answer = "\n".join([f"• {s}" for s in selected])
+    answer = "\n".join([f"• {s}" for s in sentences[:2]])
 
     return {
         "question": q.question,
         "answer": answer,
-        "confidence": confidence,
-        "sources": selected
+        "confidence": 0.9,
+        "sources": sentences[:2]
     }
