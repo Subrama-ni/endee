@@ -4,11 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from rag_pipeline import add_document, retrieve_context
 
-from sentence_transformers import SentenceTransformer, util
-
 app = FastAPI()
 
-# ✅ Enable CORS (for React)
+# ✅ Enable CORS (for React frontend)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,15 +14,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# ✅ Load embedding model
-model = None
-
-def get_model():
-    global model
-    if model is None:
-        model = SentenceTransformer('all-MiniLM-L6-v2')
-    return model
 
 # 📄 Request models
 class Document(BaseModel):
@@ -42,21 +31,37 @@ def add_doc(doc: Document):
     return {"message": "Document stored successfully"}
 
 
-# 🤖 Ask question endpoint (SMART VERSION)
+# 🤖 Ask question endpoint (LIGHTWEIGHT RAG)
 @app.post("/ask")
 def ask_question(q: Query):
     context = retrieve_context(q.question)
 
+    # Split into sentences
     sentences = [s.strip() for s in context.split('.') if s.strip()]
 
     if not sentences:
-        return {"answer": "No relevant information found."}
+        return {
+            "question": q.question,
+            "answer": "No relevant information found.",
+            "confidence": 0,
+            "sources": []
+        }
 
-    answer = "\n".join([f"• {s}" for s in sentences[:2]])
+    # Select top 2 relevant sentences
+    selected = sentences[:2]
+
+    # Format answer
+    answer = "\n".join([f"• {s}" for s in selected])
 
     return {
         "question": q.question,
         "answer": answer,
         "confidence": 0.9,
-        "sources": sentences[:2]
+        "sources": selected
     }
+
+
+# 🏠 Root endpoint (for quick testing)
+@app.get("/")
+def home():
+    return {"message": "AI Knowledge Assistant is running 🚀"}
