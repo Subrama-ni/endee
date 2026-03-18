@@ -1,5 +1,8 @@
 # 🧠 AI Knowledge Assistant using Endee (RAG System)
 
+LIVE DEMO: https://endee-mgb50a561-subramanis-projects-62e1edf7.vercel.app/
+Backend API: https://endee-yik9.onrender.com
+
 ## 🚀 Project Overview
 
 This project is a **Retrieval-Augmented Generation (RAG) based AI assistant** built using the Endee architecture.
